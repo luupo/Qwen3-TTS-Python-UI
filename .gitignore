@@ -11,6 +11,13 @@ build/
 # Projekt (lokale Einstellungen)
 voice_clone_settings.json
 
+# Temp / lokale Skripte (nicht ins Repo)
+.commit_msg.txt
+.git_commit_msg.txt
+remove_coauthor.ps1
+git_seq_edit.ps1
+.msg_initial.txt
+
 # IDE / OS
 .idea/
 .vscode/

@@ -53,8 +53,8 @@ def ensure_backend():
 class VoiceCloneApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.minsize(780, 920)
-        self.geometry("820x960")
+        self.minsize(780, 1200)
+        self.geometry("860x1320")
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -168,7 +168,7 @@ class VoiceCloneApp(ctk.CTk):
         self.progress_transcribe.pack(fill="x", pady=(6, 2))
         self.label_transcribe_status = ctk.CTkLabel(ref_inner, text="", text_color="gray")
         self.label_transcribe_status.pack(anchor="w", pady=(0, 4))
-        self.ref_text_box = ctk.CTkTextbox(ref_inner, height=100, wrap="word")
+        self.ref_text_box = ctk.CTkTextbox(ref_inner, height=180, wrap="word")
         self.ref_text_box.pack(fill="x", pady=(0, 4))
         ref_ph = ui_lang.REF_PLACEHOLDER[0] if self._ui_lang == "de" else ui_lang.REF_PLACEHOLDER[1]
         self.ref_text_box.insert("1.0", ref_ph)
@@ -179,7 +179,7 @@ class VoiceCloneApp(ctk.CTk):
         synth_inner = ctk.CTkFrame(synth_frame, fg_color="transparent")
         synth_inner.pack(fill="x", padx=12, pady=12)
         ctk.CTkLabel(synth_inner, text=self.t("synth_label"), font=ctk.CTkFont(weight="bold")).pack(anchor="w")
-        self.synth_text_box = ctk.CTkTextbox(synth_inner, height=100, wrap="word")
+        self.synth_text_box = ctk.CTkTextbox(synth_inner, height=180, wrap="word")
         self.synth_text_box.pack(fill="x", pady=4)
         self.synth_text_box.insert("1.0", ui_lang.SYNTH_PLACEHOLDER_DE if self._ui_lang == "de" else ui_lang.SYNTH_PLACEHOLDER_EN)
 
