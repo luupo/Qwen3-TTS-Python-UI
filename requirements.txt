@@ -1,0 +1,21 @@
+# Qwen3-TTS Voice Clone Windows UI
+# Python 3.10+ (empfohlen: 3.12)
+#
+# Mit "pip install -r requirements.txt" wird PyTorch für CPU installiert.
+# Für GPU (NVIDIA, schneller): siehe README – nach der Installation
+#   pip uninstall -y torch torchvision torchaudio
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+#
+# torch/torchvision müssen zusammenpassen. Bei Fehler "AutoProcessor" etc.
+#   pip install "torchvision>=0.24" --upgrade
+
+qwen-tts>=0.1.0
+torch>=2.0.0
+torchvision>=0.19.0
+soundfile>=0.12.0
+sounddevice>=0.4.6
+pydub>=0.25.0
+openai-whisper>=20231117
+customtkinter>=5.2.0
+# Optional: weniger VRAM bei GPU
+# flash-attn -- nur bei kompatibler CUDA-GPU
