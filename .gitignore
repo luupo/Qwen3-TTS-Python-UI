@@ -17,6 +17,8 @@ voice_clone_settings.json
 remove_coauthor.ps1
 git_seq_edit.ps1
 .msg_initial.txt
+.m.txt
+.msg
 
 # IDE / OS
 .idea/

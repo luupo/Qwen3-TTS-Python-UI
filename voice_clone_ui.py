@@ -53,8 +53,8 @@ def ensure_backend():
 class VoiceCloneApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.minsize(780, 1200)
-        self.geometry("860x1320")
+        self.minsize(780, 600)
+        self.geometry("860x900")
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -69,6 +69,8 @@ class VoiceCloneApp(ctk.CTk):
         self.language_var = ctk.StringVar(value="German")
         self.output_path_var = tk.StringVar(value="")
         self.export_format_var = ctk.StringVar(value="WAV")
+        self.speed_var = ctk.DoubleVar(value=1.0)
+        self.temperature_var = ctk.DoubleVar(value=0.9)
         self.model_choice_var = ctk.StringVar(value=MODEL_OPTION_IDS[0])
         self.model_dir_var = tk.StringVar(value="")  # Lokaler Modellordner (Vorrang vor Preset)
         self.download_path_var = tk.StringVar(value="")  # Speicherort für HF-Downloads (leer = Standard-Cache)
@@ -82,6 +84,8 @@ class VoiceCloneApp(ctk.CTk):
         self._gen_start_time = None
 
         self._build_ui()
+        self._update_speed_label()
+        self._update_temperature_label()
         self.model_dir_var.trace_add("write", lambda *_: self._update_load_button_text())
         self.export_format_var.trace_add("write", lambda *_: self._sync_output_extension())
         self._set_default_output()
@@ -103,8 +107,10 @@ class VoiceCloneApp(ctk.CTk):
         self._ui_lang = ui_lang.get_default_ui_locale()
 
     def _build_ui(self):
-        main = ctk.CTkFrame(self, fg_color="transparent")
-        main.pack(fill="both", expand=True, padx=20, pady=20)
+        scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=20, pady=20)
+        main = ctk.CTkFrame(scroll, fg_color="transparent")
+        main.pack(fill="x")
 
         # Titel
         title = ctk.CTkLabel(main, text=self.t("main_title"), font=ctk.CTkFont(size=22, weight="bold"))
@@ -183,6 +189,30 @@ class VoiceCloneApp(ctk.CTk):
         self.synth_text_box.pack(fill="x", pady=4)
         self.synth_text_box.insert("1.0", ui_lang.SYNTH_PLACEHOLDER_DE if self._ui_lang == "de" else ui_lang.SYNTH_PLACEHOLDER_EN)
 
+        # Geschwindigkeit, Stil, Temperatur
+        style_frame = ctk.CTkFrame(main, fg_color=("gray85", "gray25"))
+        style_frame.pack(fill="x", pady=(0, 12))
+        style_inner = ctk.CTkFrame(style_frame, fg_color="transparent")
+        style_inner.pack(fill="x", padx=12, pady=12)
+        row_speed = ctk.CTkFrame(style_inner, fg_color="transparent")
+        row_speed.pack(fill="x", pady=2)
+        ctk.CTkLabel(row_speed, text=self.t("speed_label"), width=180).pack(side="left", padx=(0, 8))
+        self.slider_speed = ctk.CTkSlider(row_speed, from_=0.5, to=2.0, number_of_steps=15, variable=self.speed_var, width=200)
+        self.slider_speed.pack(side="left", padx=(0, 8))
+        self.label_speed_value = ctk.CTkLabel(row_speed, text="1.0", width=40)
+        self.label_speed_value.pack(side="left")
+        ctk.CTkLabel(style_inner, text=self.t("speed_hint"), text_color="gray", font=ctk.CTkFont(size=12)).pack(anchor="w", pady=(0, 6))
+        row_temp = ctk.CTkFrame(style_inner, fg_color="transparent")
+        row_temp.pack(fill="x", pady=(6, 0))
+        ctk.CTkLabel(row_temp, text=self.t("temperature_label"), width=180).pack(side="left", padx=(0, 8))
+        self.slider_temperature = ctk.CTkSlider(row_temp, from_=0.5, to=1.2, number_of_steps=7, variable=self.temperature_var, width=200)
+        self.slider_temperature.pack(side="left", padx=(0, 8))
+        self.label_temperature_value = ctk.CTkLabel(row_temp, text="0.9", width=40)
+        self.label_temperature_value.pack(side="left")
+        ctk.CTkLabel(style_inner, text=self.t("temperature_hint"), text_color="gray", font=ctk.CTkFont(size=12)).pack(anchor="w", pady=(0, 2))
+        self.speed_var.trace_add("write", lambda *_: self._update_speed_label())
+        self.temperature_var.trace_add("write", lambda *_: self._update_temperature_label())
+
         # Sprache & Ausgabe (inkl. UI-Sprache)
         opt_frame = ctk.CTkFrame(main, fg_color=("gray85", "gray25"))
         opt_frame.pack(fill="x", pady=(0, 12))
@@ -248,7 +278,9 @@ class VoiceCloneApp(ctk.CTk):
                 "language": self.language_var.get(),
                 "export_format": self.export_format_var.get(),
                 "output_path": self.output_path_var.get().strip(),
-            "ui_language": self._ui_lang,
+                "ui_language": self._ui_lang,
+                "speed": self.speed_var.get(),
+                "temperature": self.temperature_var.get(),
             }
             path = self._settings_path()
             with open(path, "w", encoding="utf-8") as f:
@@ -287,6 +319,10 @@ class VoiceCloneApp(ctk.CTk):
                 self.export_format_var.set(data["export_format"])
             if data.get("ui_language") in ("de", "en"):
                 self._ui_lang = data["ui_language"]
+            if "speed" in data and isinstance(data["speed"], (int, float)) and 0.5 <= data["speed"] <= 2.0:
+                self.speed_var.set(float(data["speed"]))
+            if "temperature" in data and isinstance(data["temperature"], (int, float)) and 0.5 <= data["temperature"] <= 1.2:
+                self.temperature_var.set(float(data["temperature"]))
         except Exception:
             pass
 
@@ -380,6 +416,14 @@ class VoiceCloneApp(ctk.CTk):
         path = filedialog.askdirectory(title=self.t("dlg_download_dir"))
         if path:
             self.download_path_var.set(path)
+
+    def _update_speed_label(self):
+        if getattr(self, "label_speed_value", None) is not None:
+            self.label_speed_value.configure(text=f"{self.speed_var.get():.1f}")
+
+    def _update_temperature_label(self):
+        if getattr(self, "label_temperature_value", None) is not None:
+            self.label_temperature_value.configure(text=f"{self.temperature_var.get():.2f}")
 
     def _sync_output_extension(self):
         """Passt die Endung in der Ausgabe-Pfad-Box an das gewählte Export-Format an."""
@@ -642,6 +686,8 @@ class VoiceCloneApp(ctk.CTk):
                 ref_text=ref_text,
                 output_path=out,
                 output_format=out_fmt,
+                speed=self.speed_var.get(),
+                temperature=self.temperature_var.get(),
             )
             if err:
                 self.after(0, lambda: self._generate_done(False, err))

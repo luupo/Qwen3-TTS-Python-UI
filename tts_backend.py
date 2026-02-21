@@ -155,6 +155,23 @@ def _apply_trailing_fade_and_silence(wav: "np.ndarray", sr: int) -> "np.ndarray"
     return wav
 
 
+def _apply_speed(wav: "np.ndarray", sr: int, speed: float) -> "np.ndarray":
+    """
+    Ändert die Abspielgeschwindigkeit ohne Tonhöhenänderung (time-stretch).
+    speed > 1 = schneller, speed < 1 = langsamer.
+    """
+    if speed is None or abs(speed - 1.0) < 0.01:
+        return wav
+    import numpy as np
+    import librosa
+    if wav.ndim > 1:
+        wav = wav[:, 0] if wav.shape[1] == 1 else wav.mean(axis=1)
+    wav = np.asarray(wav, dtype=np.float32)
+    # rate in librosa: >1 = schneller
+    stretched = librosa.effects.time_stretch(wav, rate=float(speed))
+    return stretched.astype(np.float32)
+
+
 def _write_audio(wav: "np.ndarray", sr: int, output_path: Path, output_format: str) -> None:
     """
     Schreibt Audio in das gewählte Format (wav oder mp3).
@@ -219,22 +236,31 @@ def generate_voice_clone(
     output_path: str,
     output_format: str = "wav",
     x_vector_only_mode: bool = False,
+    speed: float = 1.0,
+    temperature: Optional[float] = None,
 ) -> tuple[str, Optional[str]]:
     """
     Generiert Audio mit geklonter Stimme.
     output_format: "wav" oder "mp3" (mp3 erfordert pydub + ffmpeg).
+    speed: Abspielgeschwindigkeit (1.0 = normal, >1 schneller, <1 langsamer).
+    temperature: Sampling-Temperatur (z. B. 0.7–1.0); höher = variabler/emotionaler.
     Returns: (output_path, error_message). error_message ist None bei Erfolg.
     """
     try:
+        gen_kwargs = {}
+        if temperature is not None:
+            gen_kwargs["temperature"] = float(temperature)
         wavs, sr = model.generate_voice_clone(
             text=text,
             language=language,
             ref_audio=ref_audio_path,
             ref_text=ref_text,
             x_vector_only_mode=x_vector_only_mode,
+            **gen_kwargs,
         )
         wav = wavs[0]
         wav = _apply_trailing_fade_and_silence(wav, sr)
+        wav = _apply_speed(wav, sr, speed)
         out = _ensure_extension(output_path, output_format)
         _write_audio(wav, sr, out, output_format)
         return (str(out.resolve()), None)

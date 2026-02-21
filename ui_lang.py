@@ -95,6 +95,11 @@ TEXTS = {
     "ui_language_label": ("Sprache der Oberfläche:", "UI language:"),
     "ui_lang_de": ("Deutsch", "German"),
     "ui_lang_en": ("English", "English"),
+    # Geschwindigkeit / Stil / Emotion
+    "speed_label": ("Sprechgeschwindigkeit:", "Speech speed:"),
+    "speed_hint": ("1.0 = normal, <1 langsamer, >1 schneller (nachträglich)", "1.0 = normal, <1 slower, >1 faster (post-processing)"),
+    "temperature_label": ("Variation / Temperatur:", "Variation / temperature:"),
+    "temperature_hint": ("höher = variabler; Standard 0.9", "higher = more varied; default 0.9"),
 }
 # Platzhalter für Textboxen (werden nur bei DE/EN gesetzt)
 REF_PLACEHOLDER = ("Okay. Yeah. I resent you. I love you. I respect you. But you know what? You blew it!", "Okay. Yeah. I resent you. I love you. I respect you. But you know what? You blew it!")
